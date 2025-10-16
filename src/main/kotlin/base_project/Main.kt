@@ -111,7 +111,7 @@ private fun askYesNo(prompt: String): Boolean {
     }
 }
 
-private fun helpText(config: GameConfig): String = """
+fun helpText(config: GameConfig): String = """
     Правила:
     — Я загадываю целое число в диапазоне ${config.min}..${config.max}.
     — Вводите число, а я отвечаю: больше/меньше/угадал.

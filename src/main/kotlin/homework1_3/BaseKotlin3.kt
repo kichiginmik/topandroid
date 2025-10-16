@@ -1,27 +1,138 @@
-package homework1_3
+// TODO: собрать простую логику игры
+// TODO: выделить (MiniResult) и лямбду (MiniResult) -> String
+// TODO: сохранять attempts в History<Int>, по завершении вывести сводку
 
-// Цель: вынести форматирование ответа в лямбду + дженерик-коллекцию History<T>.
-// См. "homework 1.3.md".
+import base_project.KotlinRandomProvider
+import base_project.RandomProvider
+import homework1_3.GameLogic
+import homework1_3.Result
+import homework1_3.SimpleConfig
+import homework1_3.Stats
 
-sealed class MiniResult {
-    data class Up(val delta: Int): MiniResult()
-    data class Down(val delta: Int): MiniResult()
-    data class Win(val attempts: Int): MiniResult()
-}
+private const val APP_NAME: String = "Guess 0..100"
 
-class History<T> : Iterable<T> {
-    private val items = mutableListOf<T>()
-    override fun iterator(): Iterator<T> = items.iterator()
 
-    fun add(item: T) {
-        items.add(item)
+private val resultFormatter: (Result.MiniResult) -> String = fun(result: Result.MiniResult): String {
+    return when (result) {
+        is Result.MiniResult.TooLow -> {
+            val base = "Моё число больше."
+            result.remainingAttempts?.let { remaining ->
+                "$base | Осталось попыток: $remaining"
+            } ?: base
+        }
+        is Result.MiniResult.TooHigh -> {
+            val base = "Моё число меньше."
+            result.remainingAttempts?.let { remaining ->
+                "$base | Осталось попыток: $remaining"
+            } ?: base
+        }
+        is Result.MiniResult.Correct -> "Поздравляю! Угадано за ${result.attempts} попыток"
+        is Result.MiniResult.OutOfRange -> "Число вне диапазона ${result.min}..${result.max}"
     }
-
-    fun toList(): List<T> = items.toList()
 }
-
+typealias ResultFormatter = (Result.MiniResult) -> String
 fun main() {
-    // TODO: собрать простую логику игры
-    // TODO: выделить (MiniResult) и лямбду (MiniResult) -> String
-    // TODO: сохранять attempts в History<Int>, по завершении вывести сводку
+    println("=== $APP_NAME ===")
+
+    val difficulty = askedDifficulty()
+    val cfg = SimpleConfig.fromDifficutly(difficulty)
+    val randomProvider: RandomProvider = KotlinRandomProvider()
+
+    val logic = GameLogic(cfg, randomProvider)
+    val stats = Stats()
+
+    while (true) {
+        print("Введите число [${cfg.min}..${cfg.max}] или команду: ")
+        val input = readlnOrNull()?.trim()
+
+        when {
+            input == null -> {
+                println("EOF. Выход.")
+                break
+            }
+
+            input.equals("exit", ignoreCase = true) -> {
+                println("До встречи!")
+                println(stats.finalizeAndFormat())
+                return
+            }
+
+            input.equals("help", ignoreCase = true) -> {
+                println(helpText(cfg))
+                continue
+            }
+
+            input.equals("stats", ignoreCase = true) -> {
+                println(stats.formatSession())
+                continue
+            }
+
+            else -> {
+                val guess = input.toIntOrNull()
+                if (guess == null) {
+                    println("Ошибка: введите число или команду")
+                    continue
+                }
+
+                val result: Result.MiniResult = logic.GuessNumber(guess)
+                // Убедимся, что resultFormatter вызывается правильно:
+                val formattedResult = resultFormatter(result)
+                println(formattedResult) // Выводим отформатированный результат
+
+                stats.onGuess(result)
+
+                if (result is Result.MiniResult.Correct) {
+                    println("Секретное число: ${logic.SeeLogic()} (угадано за ${result.attempts} попыток)")
+                    stats.onRoundFinished(result.attempts)
+
+                    val playAgain = askYesNo("Сыграть еще?")
+                    if (playAgain) {
+                        logic.reset()
+                        stats.startNewRound()
+                    } else {
+                        break
+                    }
+                }
+            }
+        }
+    }
+    println(stats.finalizeAndFormat())
 }
+
+// Остальные функции без изменений...
+private fun askedDifficulty(): SimpleConfig.Difficulty {
+    while (true) {
+        println("Выберите сложность: EASY | NORMAL | HARD")
+        val input = readlnOrNull()?.trim()?.uppercase()
+        val difficulty = when (input) {
+            "EASY" -> SimpleConfig.Difficulty.EASY
+            "NORMAL" -> SimpleConfig.Difficulty.NORMAL
+            "HARD" -> SimpleConfig.Difficulty.HARD
+            else -> {
+                println("Неизвестная сложность. Используется NORMAL")
+                SimpleConfig.Difficulty.NORMAL
+            }
+        }
+        return difficulty
+    }
+}
+
+private fun askYesNo(prompt: String): Boolean {
+    while (true) {
+        print("$prompt (y/n): ")
+        when (readlnOrNull()?.trim()?.lowercase()) {
+            "y", "yes", "да", "д" -> return true
+            "n", "no", "нет", "н" -> return false
+            else -> {
+                println("Введите y/n или да/нет.")
+            }
+        }
+    }
+}
+
+private fun helpText(cfg: SimpleConfig): String = """
+    Правила:
+    — Я загадываю целое число в диапазоне ${cfg.min}..${cfg.max}.
+    — Вводите число, а я отвечаю: больше/меньше/угадал.
+    — Команды: help, stats, exit.
+""".trimIndent()
