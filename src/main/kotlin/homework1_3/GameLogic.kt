@@ -7,14 +7,14 @@ class GameLogic (
 ) {
     private var logic: Int = randomProvider.nextInt(config.min, config.max)
     private var attempts: Int = 0
-    private val history: MutableList<Int> = mutableListOf()
+    private val attemptsHistory: History<Int> = History()
 
-    fun GuessNumber(guess: Int): Result.MiniResult {
+    fun guessNumber(guess: Int): Result.MiniResult {
         if (guess < config.min || guess > config.max) {
             return Result.MiniResult.OutOfRange(config.min, config.max)
         }
         attempts += 1
-        history += guess
+        attemptsHistory.add(guess)
 
         // Исправляем подсчет оставшихся попыток - не меньше 0
         val remaining = attemptsCountRemain()?.let { if (it < 0) 0 else it }
@@ -28,13 +28,13 @@ class GameLogic (
 
     fun attemptsCountRemain(): Int? = config.maxAttempts?.let { it - attempts }
 
-    fun SeeLogic(): Int = logic
+    fun seeLogic(): Int = logic
 
     fun reset() {
         logic = randomProvider.nextInt(config.min, config.max)
         attempts = 0
-        history.clear()
+
     }
 
-    fun historySnapshot(): List<Int> = history.toList()
+    fun historySnapshot(): List<Int> = attemptsHistory.toList()
 }

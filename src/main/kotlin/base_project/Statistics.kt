@@ -51,8 +51,4 @@ class StatsTracker {
             Лучший результат (меньше — лучше): ${bestAttempts ?: "-"}
         """.trimIndent()
     }
-
-    fun finalizeAndFormat(): String {
-        return formatSession()
-    }
 }

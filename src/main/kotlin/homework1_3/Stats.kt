@@ -39,12 +39,4 @@ class Stats {
             Лучший результат (меньше — лучше): ${bestAttempts ?: "-"}
         """.trimIndent()
     }
-
-    fun finalizeAndFormat(): String {
-        return formatSession()
-    }
-    fun onGuess(result: Result.MiniResult) {
-        // Можно считать "шумную" статистику, напр., дельту последнего сравнения
-        // но для базового модуля достаточно реакции на Correct в onRoundFinished
-    }
 }

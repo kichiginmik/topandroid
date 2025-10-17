@@ -12,22 +12,22 @@ import homework1_3.Stats
 private const val APP_NAME: String = "Guess 0..100"
 
 
-private val resultFormatter: (Result.MiniResult) -> String = fun(result: Result.MiniResult): String {
-    return when (result) {
+private val resultFormatter: (Result.MiniResult) -> String = { resultArgument ->
+    when (resultArgument) {
         is Result.MiniResult.TooLow -> {
             val base = "Моё число больше."
-            result.remainingAttempts?.let { remaining ->
+            resultArgument.remainingAttempts?.let { remaining ->
                 "$base | Осталось попыток: $remaining"
             } ?: base
         }
         is Result.MiniResult.TooHigh -> {
             val base = "Моё число меньше."
-            result.remainingAttempts?.let { remaining ->
+            resultArgument.remainingAttempts?.let { remaining ->
                 "$base | Осталось попыток: $remaining"
             } ?: base
         }
-        is Result.MiniResult.Correct -> "Поздравляю! Угадано за ${result.attempts} попыток"
-        is Result.MiniResult.OutOfRange -> "Число вне диапазона ${result.min}..${result.max}"
+        is Result.MiniResult.Correct -> "Поздравляю! Угадано за ${resultArgument.attempts} попыток"
+        is Result.MiniResult.OutOfRange -> "Число вне диапазона ${resultArgument.min}..${resultArgument.max}"
     }
 }
 typealias ResultFormatter = (Result.MiniResult) -> String
@@ -74,15 +74,15 @@ fun main() {
                     continue
                 }
 
-                val result: Result.MiniResult = logic.GuessNumber(guess)
-                // Убедимся, что resultFormatter вызывается правильно:
+                val result: Result.MiniResult = logic.guessNumber(guess)
+                // Убедимся, что ormatter вызывается правильно:
                 val formattedResult = resultFormatter(result)
                 println(formattedResult) // Выводим отформатированный результат
 
                 stats.onGuess(result)
 
                 if (result is Result.MiniResult.Correct) {
-                    println("Секретное число: ${logic.SeeLogic()} (угадано за ${result.attempts} попыток)")
+                    println("Секретное число: ${logic.seeLogic()} (угадано за ${result.attempts} попыток)")
                     stats.onRoundFinished(result.attempts)
 
                     val playAgain = askYesNo("Сыграть еще?")
