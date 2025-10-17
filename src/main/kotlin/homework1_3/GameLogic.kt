@@ -36,5 +36,6 @@ class GameLogic (
 
     }
 
+
     fun historySnapshot(): List<Int> = attemptsHistory.toList()
 }

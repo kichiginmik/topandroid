@@ -53,7 +53,7 @@ fun main() {
 
             input.equals("exit", ignoreCase = true) -> {
                 println("До встречи!")
-                println(stats.finalizeAndFormat())
+
                 return
             }
 
@@ -79,7 +79,7 @@ fun main() {
                 val formattedResult = resultFormatter(result)
                 println(formattedResult) // Выводим отформатированный результат
 
-                stats.onGuess(result)
+
 
                 if (result is Result.MiniResult.Correct) {
                     println("Секретное число: ${logic.seeLogic()} (угадано за ${result.attempts} попыток)")
@@ -96,10 +96,8 @@ fun main() {
             }
         }
     }
-    println(stats.finalizeAndFormat())
 }
 
-// Остальные функции без изменений...
 private fun askedDifficulty(): SimpleConfig.Difficulty {
     while (true) {
         println("Выберите сложность: EASY | NORMAL | HARD")

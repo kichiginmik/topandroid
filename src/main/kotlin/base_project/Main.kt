@@ -83,8 +83,7 @@ fun main() {
     // Завершение сессии
     println()
     println("=== Итоги ===")
-    println(stats.finalizeAndFormat())
-    exitProcess(0)
+       exitProcess(0)
 }
 
 private fun askDifficulty(): Difficulty {
